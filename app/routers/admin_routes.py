@@ -4,6 +4,7 @@ from app.admin.admin_client import keycloak_admin_request
 from app.models.role import RoleMappingRequest
 from app.models.user import PasswordReset, UserCreate, UserUpdate
 from app.admin import role_management
+from app.admin import groupe_management
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -134,3 +135,36 @@ def remove_client_role(user_id: str, client_id: str, roles: list[str]):
     Ex body JSON: ["client_role_1"]
     """
     return role_management.remove_client_roles_from_user(user_id, client_id, roles)
+
+
+# Gestion des groupes---------------------------------------------------------
+
+# Création d’un groupe
+@router.post("/groups")
+def create_group_endpoint(group_data: dict):
+    return groupe_management.create_group(group_data)
+
+# Consultation des groupes
+@router.get("/groups")
+def list_groups_endpoint():
+    return groupe_management.list_groups()
+
+# Mise à jour d’un groupe
+@router.put("/groups/{group_id}")
+def update_group_endpoint(group_id: str, group_data: dict):
+    return groupe_management.update_group(group_id, group_data)
+
+# Suppression d’un groupe
+@router.delete("/groups/{group_id}")
+def delete_group_endpoint(group_id: str):
+    return groupe_management.delete_group(group_id)
+
+@router.put("/groups/{group_id}/users/{user_id}")
+def add_user_to_group_endpoint(group_id: str, user_id: str):
+    # On appelle la fonction qui construit la bonne URL Keycloak /users/{userId}/groups/{groupId}
+    return groupe_management.add_user_to_group(user_id, group_id)
+
+@router.delete("/groups/{group_id}/users/{user_id}")
+def remove_user_from_group_endpoint(group_id: str, user_id: str):
+    return groupe_management.remove_user_from_group(user_id, group_id)
+
