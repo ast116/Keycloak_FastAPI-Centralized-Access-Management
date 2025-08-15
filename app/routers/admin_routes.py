@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from app.admin import user_management
 from app.admin.admin_client import keycloak_admin_request
+from app.models.role import RoleMappingRequest
 from app.models.user import PasswordReset, UserCreate, UserUpdate
 from app.admin import role_management
 
@@ -44,6 +45,7 @@ def reset_password_endpoint(user_id: str, payload: PasswordReset):
     return user_management.reset_password(user_id, payload.password)
 
 # Gestion des roles--------------------------------------------------------------
+# CRUD ROLES REALM
 
 @router.post("/roles")
 def create_role_endpoint(role_data: dict):
@@ -80,3 +82,55 @@ def remove_role(user_id: str, roles: list[str]):
     Ex body JSON: ["admin", "etudiant"]
     """
     return role_management.remove_roles_from_user(user_id, roles)
+
+@router.get("/users/{user_id}/role-mappings")
+def get_user_role_mappings(user_id: str):
+    """
+    Retourne les mappings de rôles Realm et Client d'un utilisateur.
+    """
+    return role_management.get_role_mappings(user_id)
+
+@router.post("/users/{user_id}/role-mappings")
+def modify_role_mappings(user_id: str, data: RoleMappingRequest):
+    return role_management.update_role_mappings(
+        user_id,
+        data.scope,
+        data.roles,
+        data.action
+    )
+
+# CRUD ROLES CLIENT
+@router.post("/clients/{client_id}/roles")
+def create_client_role_endpoint(client_id: str, role_data: dict):
+    return role_management.create_client_role(client_id, role_data)
+
+@router.get("/clients/{client_id}/roles")
+def list_client_roles_endpoint(client_id: str):
+    return role_management.list_client_roles(client_id)
+
+@router.put("/clients/{client_id}/roles/{role_name}")
+def update_client_role_endpoint(client_id: str, role_name: str, role_data: dict):
+    return role_management.update_client_role(client_id, role_name, role_data)
+
+@router.delete("/clients/{client_id}/roles/{role_name}")
+def delete_client_role_endpoint(client_id: str, role_name: str):
+    return role_management.delete_client_role(client_id, role_name)
+
+# Attribution de rôles client
+@router.post("/users/{user_id}/clients/{client_id}/roles")
+def assign_client_role(user_id: str, client_id: str, roles: list[str]):
+    """
+    Assigne plusieurs rôles client à un utilisateur.
+    Ex body JSON: ["client_role_1", "client_role_2"]
+    """
+    return role_management.assign_client_roles_to_user(user_id, client_id, roles)
+
+
+# Suppression de rôles client
+@router.delete("/users/{user_id}/clients/{client_id}/roles")
+def remove_client_role(user_id: str, client_id: str, roles: list[str]):
+    """
+    Retire plusieurs rôles client à un utilisateur.
+    Ex body JSON: ["client_role_1"]
+    """
+    return role_management.remove_client_roles_from_user(user_id, client_id, roles)
