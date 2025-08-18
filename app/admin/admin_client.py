@@ -10,7 +10,7 @@ def get_admin_token():
     data = {
         "client_id": config.KEYCLOAK_ADMIN_CLIENT_ID,
         "client_secret": config.KEYCLOAK_ADMIN_CLIENT_SECRET,
-        "grant_type": "client_credentials"
+        "grant_type": "client_credentials",
     }
 
     response = requests.post(config.KEYCLOAK_ADMIN_TOKEN_URL, data=data)

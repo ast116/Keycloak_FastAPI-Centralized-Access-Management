@@ -244,3 +244,59 @@ def update_client(client_id: str, client: ClientUpdate):
 def delete_client_endpoint(client_id: str):
     return client_management.delete_client(client_id)
 
+
+# Gestion des Sessions---------------------------------------------------
+
+@router.get("/users/{user_id}/sessions")
+def get_user_sessions(user_id: str):
+    """
+    Récupère les sessions actives d’un utilisateur
+    """
+    try:
+        endpoint = f"users/{user_id}/sessions"
+        sessions = keycloak_admin_request("GET", endpoint)
+        if sessions is None:
+            sessions = []
+
+        formatted = []
+        for s in sessions:
+            formatted.append({
+                "id": s.get("id"),
+                "ipAddress": s.get("ipAddress"),
+                "start": s.get("start"),  # timestamp
+                "lastAccess": s.get("lastAccess"),
+                "clients": list(s.get("clients", {}).keys()),  # apps utilisées
+            })
+
+        return {"count": len(formatted), "sessions": formatted}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/users/{user_id}/logout")
+def force_logout(user_id: str):
+    """
+    Déconnexion forcée d’un utilisateur (toutes ses sessions sont invalidées)
+    """
+    try:
+        endpoint = f"users/{user_id}/logout"
+        keycloak_admin_request("POST", endpoint)
+        return {"message": f"Utilisateur {user_id} déconnecté avec succès"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+@router.get("/users/{user_id}/offline-sessions/{client_id}")
+def get_offline_sessions(user_id: str, client_id: str):
+    """
+    Récupère les sessions offline d’un utilisateur pour un client donné
+    """
+    try:
+        endpoint = f"users/{user_id}/offline-sessions/{client_id}"
+        sessions = keycloak_admin_request("GET", endpoint)
+        if sessions is None:
+            sessions = []
+        return {"count": len(sessions), "sessions": sessions}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
