@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Query
 from app.admin import client_management, user_management
 from app.admin.admin_client import keycloak_admin_request
 from app.models.client import ClientCreate, ClientUpdate
@@ -197,8 +198,35 @@ def create_client(client: ClientCreate):
         raise HTTPException(status_code=500, detail=str(e))
     
 @router.get("/clients")
-def list_clients_endpoint():
-    return client_management.list_clients()
+def list_clients(
+    client_id: Optional[str] = Query(None, description="Filtrer par clientId exact"),
+    search: Optional[str] = Query(None, description="Recherche partielle dans clientId"),
+    enabled: Optional[bool] = Query(None, description="Filtrer selon l'état (activé ou non)"),
+):
+    """
+    Liste les clients Keycloak avec options de recherche et filtrage
+    """
+    try:
+        clients = keycloak_admin_request("GET", "clients")
+        if clients is None:
+            clients = []
+
+        # Filtrage par clientId exact
+        if client_id:
+            clients = [c for c in clients if c.get("clientId") == client_id]
+
+        # Recherche partielle dans clientId
+        if search:
+            clients = [c for c in clients if search.lower() in c.get("clientId", "").lower()]
+
+        # Filtrage par statut enabled
+        if enabled is not None:
+            clients = [c for c in clients if c.get("enabled") == enabled]
+
+        return {"count": len(clients), "results": clients}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.put("/clients/{client_id}")
 def update_client(client_id: str, client: ClientUpdate):
