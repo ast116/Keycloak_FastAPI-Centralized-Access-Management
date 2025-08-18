@@ -300,3 +300,50 @@ def get_offline_sessions(user_id: str, client_id: str):
         return {"count": len(sessions), "sessions": sessions}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+# Gestion des Identites Federees---------------------------------------------
+
+@router.post("/users/{user_id}/federated-identity/{provider}")
+def add_federated_identity(user_id: str, provider: str, payload: dict):
+    """
+    Lie un compte utilisateur à une identité fédérée (Google, Facebook, etc.)
+    """
+    try:
+        endpoint = f"users/{user_id}/federated-identity/{provider}"
+        body = {
+            "userId": payload.get("userId"),
+            "userName": payload.get("userName")
+        }
+        # IMPORTANT : envoyer en JSON
+        response = keycloak_admin_request("POST", endpoint, json=body)
+        return {"message": f"Identité {provider} liée avec succès", "details": response}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/users/{user_id}/federated-identity")
+def list_federated_identities(user_id: str):
+    """
+    Liste toutes les identités fédérées liées à un utilisateur.
+    """
+    try:
+        endpoint = f"users/{user_id}/federated-identity"
+        response = keycloak_admin_request("GET", endpoint)
+        if response is None:
+            response = []
+        return {"count": len(response), "federated_identities": response}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/users/{user_id}/federated-identity/{provider}")
+def remove_federated_identity(user_id: str, provider: str):
+    """
+    Supprime une identité fédérée liée à un utilisateur
+    """
+    try:
+        endpoint = f"users/{user_id}/federated-identity/{provider}"
+        keycloak_admin_request("DELETE", endpoint)
+        return {"message": f"Identité {provider} supprimée avec succès"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
