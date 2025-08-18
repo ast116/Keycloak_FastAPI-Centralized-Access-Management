@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends
-from app.admin import user_management
+from fastapi import APIRouter, Depends, HTTPException
+from app.admin import client_management, user_management
 from app.admin.admin_client import keycloak_admin_request
+from app.models.client import ClientCreate, ClientUpdate
 from app.models.role import RoleMappingRequest
 from app.models.user import PasswordReset, UserCreate, UserUpdate
 from app.admin import role_management
@@ -167,4 +168,51 @@ def add_user_to_group_endpoint(group_id: str, user_id: str):
 @router.delete("/groups/{group_id}/users/{user_id}")
 def remove_user_from_group_endpoint(group_id: str, user_id: str):
     return groupe_management.remove_user_from_group(user_id, group_id)
+
+
+# Gestion des clients---------------------------------------------------
+
+@router.post("/clients")
+def create_client(client: ClientCreate):
+    """
+    Créer un nouveau client dans Keycloak
+    """
+    try:
+        data = {
+            "clientId": client.clientId,
+            "enabled": True,
+            "redirectUris": client.redirectUris,
+            "publicClient": client.publicClient,
+            "protocol": "openid-connect",
+            "directAccessGrantsEnabled": True
+        }
+
+        # Si le client n’est pas public → il faut un secret
+        if not client.publicClient:
+            data["secret"] = client.secret or "defaultSecret"
+
+        return keycloak_admin_request("POST", "clients", json=data)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/clients")
+def list_clients_endpoint():
+    return client_management.list_clients()
+
+@router.put("/clients/{client_id}")
+def update_client(client_id: str, client: ClientUpdate):
+    try:
+        data = client.dict(exclude_unset=True)  # ✅ n’inclut que les champs envoyés
+        if not data:
+            raise HTTPException(status_code=400, detail="Aucune donnée fournie pour la mise à jour")
+
+        return keycloak_admin_request("PUT", f"clients/{client_id}", json=data)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/clients/{client_id}")
+def delete_client_endpoint(client_id: str):
+    return client_management.delete_client(client_id)
 
