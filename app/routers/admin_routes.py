@@ -1,7 +1,10 @@
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
+from app import config
 from app.admin import client_management, user_management
 from app.admin.admin_client import keycloak_admin_request
+from app.admin.authorization_management import create_permission, create_resource, list_permissions, list_policies, list_resources
+from app.models.authorization import PermissionCreate, PolicyCreate, ResourceCreate
 from app.models.client import ClientCreate, ClientUpdate
 from app.models.role import RoleMappingRequest
 from app.models.user import PasswordReset, UserCreate, UserUpdate
@@ -347,3 +350,37 @@ def remove_federated_identity(user_id: str, provider: str):
         return {"message": f"Identité {provider} supprimée avec succès"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# Gestion des Politiques d’Autorisation---------------------------------------
+
+# Resources
+@router.post("/clients/{client_id}/resources")
+def add_resource(client_id: str, resource: ResourceCreate):
+    return create_resource(client_id, resource.dict())
+
+@router.get("/clients/{client_id}/resources")
+def get_resources(client_id: str):
+    return list_resources(client_id)
+
+# Policies
+@router.post("/clients/{client_id}/policies")
+def create_policy(client_id: str, policy: PolicyCreate):
+    endpoint = f"clients/{client_id}/authz/resource-server/policy/{policy.type}"
+    
+    body = policy.dict(exclude_unset=True)  # exclut les champs non définis
+    return keycloak_admin_request("POST", endpoint, json=body)
+
+
+@router.get("/clients/{client_id}/policies")
+def get_policies(client_id: str):
+    return list_policies(client_id)
+
+# Permissions
+@router.post("/clients/{client_id}/permissions")
+def add_permission(client_id: str, permission: PermissionCreate):
+    return create_permission(client_id, permission.dict())
+
+@router.get("/clients/{client_id}/permissions")
+def get_permissions(client_id: str):
+    return list_permissions(client_id)
