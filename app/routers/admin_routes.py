@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from app import config
 from app.admin import client_management, user_management
 from app.admin.admin_client import keycloak_admin_request
-from app.admin.authorization_management import create_permission, create_resource, list_permissions, list_policies, list_resources
+from app.admin.authorization_management import create_permission, create_resource, list_permissions, list_policies, list_resources, simulate_policy
 from app.models.authorization import PermissionCreate, PolicyCreate, ResourceCreate
 from app.models.client import ClientCreate, ClientUpdate
 from app.models.role import RoleMappingRequest
@@ -384,3 +384,11 @@ def add_permission(client_id: str, permission: PermissionCreate):
 @router.get("/clients/{client_id}/permissions")
 def get_permissions(client_id: str):
     return list_permissions(client_id)
+
+# Simulation
+@router.post("/clients/{client_id}/simulate")
+def simulate_authorization(client_id: str, payload: dict):
+    """
+    Simule l'application des politiques d'autorisation pour un utilisateur donné.
+    """
+    return simulate_policy(client_id, payload)
