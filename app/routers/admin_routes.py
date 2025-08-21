@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from app import config
 from app.admin import client_management, user_management
 from app.admin.admin_client import keycloak_admin_request
+from app.admin.audit_management import export_events_csv, list_events
 from app.admin.authorization_management import create_permission, create_resource, list_permissions, list_policies, list_resources, simulate_policy
 from app.models.authorization import PermissionCreate, PolicyCreate, ResourceCreate
 from app.models.client import ClientCreate, ClientUpdate
@@ -392,3 +393,39 @@ def simulate_authorization(client_id: str, payload: dict):
     Simule l'application des politiques d'autorisation pour un utilisateur donné.
     """
     return simulate_policy(client_id, payload)
+
+
+# Audit et Journalisation
+
+@router.get("/logs")
+def get_logs(
+    event_type: Optional[str] = None,
+    user: Optional[str] = None,
+    from_date: Optional[str] = None,
+    to_date: Optional[str] = None
+):
+    """
+    Récupère les logs d'événements du realm administré avec filtres :
+    - type : type d'événement
+    - user : id de l'utilisateur
+    - from_date / to_date : intervalle de date au format 'YYYY-MM-DDTHH:MM:SS'
+    """
+    try:
+        return list_events(event_type, user, from_date, to_date)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Export des logs au format CSV
+
+@router.get("/logs/export")
+def export_logs(
+    event_type: Optional[str] = None,
+    user: Optional[str] = None,
+    from_date: Optional[str] = None,
+    to_date: Optional[str] = None
+):
+    """
+    Exporte les logs filtrés en CSV.
+    """
+    return export_events_csv(event_type, user, from_date, to_date)
