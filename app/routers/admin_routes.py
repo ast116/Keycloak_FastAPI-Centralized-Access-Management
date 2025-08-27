@@ -443,5 +443,20 @@ def create_new_realm(data: realm.RealmCreateRequest):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.put("/realms/{realm_name}")
+def configure_realm(realm_name: str, data: realm.RealmUpdateRequest):
+    try:
+        result = admin_realm.update_realm(realm_name, data)
+        return {"message": f"Realm '{realm_name}' mis à jour avec succès", "details": result}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.delete("/realms/{realm_name}")
+def remove_realm(realm_name: str):
+    try:
+        admin_realm.delete_realm(realm_name)
+        return {"message": f"Realm '{realm_name}' supprimé avec succès"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
