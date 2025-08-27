@@ -18,7 +18,7 @@ KEYCLOAK_OPENID_CONFIG_URL = f"{KEYCLOAK_SERVER_URL}/realms/{KEYCLOAK_REALM}/pro
 KEYCLOAK_ADMIN_CLIENT_ID = os.getenv("KEYCLOAK_ADMIN_CLIENT_ID", "fastapi-admin")
 KEYCLOAK_ADMIN_CLIENT_SECRET = os.getenv(
     "KEYCLOAK_ADMIN_CLIENT_SECRET",
-    "DwYODdMaoYLtfIgAf001PMIWWh7nixsk"  # ⚠️ Mon client secret pour fastapi-admin
+    "DwYODdMaoYLtfIgAf001PMIWWh7nixsk"  #  Mon client secret pour fastapi-admin
 )
 
 # URL pour obtenir un token admin
@@ -30,3 +30,10 @@ KEYCLOAK_ADMIN_TOKEN_URL = (
 KEYCLOAK_ADMIN_BASE_URL = (
     f"{KEYCLOAK_SERVER_URL}/admin/realms/{KEYCLOAK_REALM}"
 )
+
+# Pour la gestion globale des realms
+KEYCLOAK_ADMIN_GLOBAL_URL = f"{KEYCLOAK_SERVER_URL}/admin/realms"
+
+
+
+

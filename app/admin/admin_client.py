@@ -21,20 +21,17 @@ def get_admin_token():
     return response.json()["access_token"]
 
 
-def keycloak_admin_request(method, endpoint, **kwargs):
-    """
-    Envoie une requête à l'Admin REST API de Keycloak avec token admin.
-    """
+def keycloak_admin_request(method: str, url: str, data=None, json=None):
     token = get_admin_token()
+
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
     }
 
-    url = f"{config.KEYCLOAK_ADMIN_BASE_URL}/{endpoint}"
-    response = requests.request(method, url, headers=headers, **kwargs)
+    response = requests.request(method, url, headers=headers, data=data, json=json)
 
     if not response.ok:
         raise Exception(f"Erreur API Keycloak: {response.status_code} - {response.text}")
+    return response.json() if response.text else {}
 
-    return response.json() if response.text else None
