@@ -5,8 +5,10 @@ from app.admin import client_management, user_management
 from app.admin.admin_client import keycloak_admin_request
 from app.admin.audit_management import export_events_csv, list_events
 from app.admin.authorization_management import create_permission, create_resource, list_permissions, list_policies, list_resources, simulate_policy
+from app.admin.realm_management import create_realm, delete_realm, update_realm
 from app.models.authorization import PermissionCreate, PolicyCreate, ResourceCreate
 from app.models.client import ClientCreate, ClientUpdate
+from app.models.realm import RealmCreateRequest, RealmUpdateRequest
 from app.models.role import RoleMappingRequest
 from app.models.user import PasswordReset, UserCreate, UserUpdate
 from app.admin import role_management
@@ -429,3 +431,29 @@ def export_logs(
     Exporte les logs filtrés en CSV.
     """
     return export_events_csv(event_type, user, from_date, to_date)
+
+# Gestion des Realms-------------------------------------------------------
+
+@router.post("/realms")
+def create_new_realm(data: RealmCreateRequest):
+    try:
+        result = create_realm(data)
+        return {"message": f"Realm '{data.realm_name}' créé avec succès", "details": result}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.put("/realms/{realm_name}")
+def configure_realm(realm_name: str, data: RealmUpdateRequest):
+    try:
+        result = update_realm(realm_name, data)
+        return {"message": f"Realm '{realm_name}' mis à jour avec succès", "details": result}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+@router.delete("/realms/{realm_name}")
+def remove_realm(realm_name: str):
+    try:
+        delete_realm(realm_name)
+        return {"message": f"Realm '{realm_name}' supprimé avec succès"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
