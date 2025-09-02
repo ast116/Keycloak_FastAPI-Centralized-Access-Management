@@ -48,3 +48,6 @@ def reset_password(user_id, new_password):
         "temporary": False
     }
     return keycloak_admin_request("PUT", f"users/{user_id}/reset-password", json=payload)
+
+def send_verify_email(user_id: str):
+    return keycloak_admin_request("PUT", f"users/{user_id}/send-verify-email")

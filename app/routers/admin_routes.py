@@ -5,9 +5,11 @@ from app.admin import client_management, user_management
 from app.admin.admin_client import keycloak_admin_request
 from app.admin.audit_management import export_events_csv, list_events
 from app.admin.authorization_management import create_permission, create_resource, list_permissions, list_policies, list_resources, simulate_policy
+from app.admin.identity_provider import create_identity_provider, delete_identity_provider, list_identity_providers, update_identity_provider
 from app.admin.realm_management import create_realm, delete_realm, update_realm
 from app.models.authorization import PermissionCreate, PolicyCreate, ResourceCreate
 from app.models.client import ClientCreate, ClientUpdate
+from app.models.identity_provider import IdentityProviderCreateRequest, IdentityProviderUpdateRequest
 from app.models.realm import RealmCreateRequest, RealmUpdateRequest
 from app.models.role import RoleMappingRequest
 from app.models.user import PasswordReset, UserCreate, UserUpdate
@@ -37,8 +39,10 @@ def get_user(user_id: str):
 def delete_user(user_id: str):
     return user_management.delete_user(user_id)
 
-def send_verify_email(user_id):
-    return keycloak_admin_request("PUT", f"users/{user_id}/send-verify-email")
+@router.put("/users/{user_id}/send-verify-email")
+def send_verify_email_endpoint(user_id: str):
+    return user_management.send_verify_email(user_id)
+
 
 @router.put("/users/{user_id}")
 def update_user_endpoint(user_id: str, user: UserUpdate):
@@ -455,5 +459,44 @@ def remove_realm(realm_name: str):
     try:
         delete_realm(realm_name)
         return {"message": f"Realm '{realm_name}' supprimé avec succès"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# Gestion des Identity Providers---------------------------------------
+
+# US39 - Créer un Identity Provider
+@router.post("/identity-provider")
+def create_idp(request: IdentityProviderCreateRequest):
+    try:
+        return create_identity_provider(request)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# US40 - Mettre à jour un Identity Provider
+@router.put("/identity-provider/{alias}")
+def update_idp(alias: str, request: IdentityProviderUpdateRequest):
+    try:
+        return update_identity_provider(alias, request)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# US41 - Supprimer un Identity Provider
+@router.delete("/identity-provider/{alias}")
+def delete_idp(alias: str):
+    try:
+        return delete_identity_provider(alias)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+@router.get("/identity-providers")
+def get_identity_providers():
+    """
+    Liste tous les Identity Providers configurés dans le realm.
+    """
+    try:
+        return list_identity_providers()
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
