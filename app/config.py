@@ -30,3 +30,10 @@ KEYCLOAK_ADMIN_TOKEN_URL = (
 KEYCLOAK_ADMIN_BASE_URL = (
     f"{KEYCLOAK_SERVER_URL}/admin/realms/{KEYCLOAK_REALM}"
 )
+
+# Cerbos configuration
+CERBOS_ADMIN_URL = os.getenv("CERBOS_ADMIN_URL", "http://localhost:8090")
+CERBOS_ADMIN_USERNAME = os.getenv("CERBOS_ADMIN_USERNAME", "cerbos")
+CERBOS_ADMIN_PASSWORD = os.getenv("CERBOS_ADMIN_PASSWORD", "admin123")
+
+

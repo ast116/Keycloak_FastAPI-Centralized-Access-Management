@@ -5,7 +5,7 @@ from app import config
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-@router.post("/token", include_in_schema=False)  # 👈 cache cette route dans Swagger UI
+@router.post("/token", include_in_schema=True)  # 👈 cache cette route dans Swagger UI
 def get_token_from_keycloak(
     username: str = Form(...),
     password: str = Form(...),
