@@ -84,8 +84,8 @@ Maintenant sortez et aller dans le realm master de keycloak, ensuite user, menu 
 
 Cree un utilisateur dans le realm crée (myrealm et non dans realm master)
 
-    username=test # exemple de nom
-    credential=test # exemple de mot de passe
+    username=test # exemple de nom pour tester
+    credential=test # exemple de mot de passe pour tester
 
 ## Installation et Exécution
 
